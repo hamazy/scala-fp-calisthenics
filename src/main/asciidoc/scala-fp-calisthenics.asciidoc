@@ -1,0 +1,160 @@
+Scala関数型プログラミング入門
+=============================
+
+プログラミング言語 Scala
+------------------------
+
+http://scala-lang.org/[Scala] は、オブジェクト指向と関数型をミックスした、
+マルチパラダイム言語です。
+Scala には様々な特徴がありますが、今回は、関数型である点に焦点をあてます。
+
+関数型プログラミング
+--------------------
+
+初めに、関数型プログラミングという言葉について簡単に説明します。
+関数型プログラミングとは、純粋関数のみを使うスタイルのプログラミングです。
+純粋関数とは、副作用を持たない関数のことです。以下は全て、副作用の例です。
+
+* 変数に再代入する
+* データの構造を破壊的に変更する
+* オブジェクトのフィールドに値をセットする
+* 例外を投げる、エラー時に終了する
+* コンソールに出力する、ユーザー入力を読む
+* ファイルを読み書きする
+* スクリーンに描画する
+
+Scala はオブジェクト指向プログラミングのための機能も備えており、
+関数型言語としては非純粋関数型に分類されます。
+そのため、副作用を許容するプログラミングも可能です。
+
+http://www.cse.chalmers.se/~rjmh/Papers/whyfp.html[Why Functional Programming Matters]
+http://www.eliza.ch/doc/wadler92essence_of_FP.pdf[The Essence of Functional Programming]
+http://www.thocp.net/biographies/papers/backus_turingaward_lecture.pdf[Can We Be Liberated From the von Neumann Machine?]
+
+参照透過性
+~~~~~~~~~~
+
+ある式の中で、その式の値を変えることなく、等しいもの同士を置換できることを、参照透過性
+(Referential Transparency) と言います。
+
+置換モデル
+~~~~~~~~~~
+
+置換モデル (Substitution Model)
+
+--------------------
+scala> val a = 5
+a: Int = 5
+
+scala> sumOfSquares(a + 1, a * 2)
+res1: Int = 136
+--------------------
+
+置換モデルを使って、上の結果を次のように導くことができます。
+
+--------------------
+sumOfSquares(a + 1, a * 2)
+sumOfSquares(5 + 1, 5 * 2)
+sumOfSquares(6, 10)
+square(6) + square(10)
+(6 * 6) + (10 * 10)
+36 + 100
+136
+--------------------
+
+参照透過性が保たれていて、置換モデルが使えると、以下のようなメリットがあります。
+
+* testable
+  * 実行時のコンテキストに依存しないので、簡単に再現できる
+* composable
+  * 実行時のコンテキストに依存しないので、簡単に他のモジュールと組み合わせられる
+* mudular
+  * 実行時のコンテキストに依存しないので、依存性が少ない
+* easilly parrallelized
+  * 
+
+var を使わない
+----------------
+
+単純な例
+~~~~~~~~
+
+Scala では変数を宣言するのに2種類の方法があります。
+
+--------------------
+val foo = "foo"
+var bar = "bar"
+--------------------
+
+末尾再帰
+~~~~~~~~
+
+stack over flow
+tail position,
+tail call optimization / tail recursive optimization, JVM は TCO をしてくれない。 @tailrec 
+
+相互再帰
+~~~~~~~~
+
+Mutual Recursion
+
+http://www.scala-lang.org/api/current/index.html#scala.util.control.TailCalls$[TailCalls]
+を使うと、末尾再帰が trampoline を使って最適化される。
+
+trampoline の内部実装については、
+http://blog.higher-order.com/assets/trampolines.pdf[Stackless Scala with Free Monads (PDF)]
+の論文を参照。
+
+State-passing style
+~~~~~~~~~~~~~~~~~~~
+
+State-passing style
+
+純粋関数を使って、ステートフル な API をどのように実装するかについて説明します。
+
+mutable collection を使わない
+-----------------------------
+
+Scala には mutable (可変の) collection と immutable (不変の) collection
+があり、区別して使います。 `scala.collection.immutable` パッケージにあるのが
+immutable で、 `scala.collection.mutable` パッケージにあるのが
+mutable です。
+
+mutable collection は、そのものを変更することができ、副作用があります。一方、
+immutable collection は変更できません。immutable collection
+に追加、削除、更新の操作をすると、古い collection はそのままで、新しい
+collection が返ります。
+
+http://docs.scala-lang.org/overviews/collections/overview.html[Mutable and Immutable Collections]
+
+null を使わない
+---------------
+
+Scala のコードでは `null` を使わない。値をとらない可能性がある型には http://www.scala-lang.org/api/current/index.html#scala.Option[`Option`] を使う。
+
+`null` を返す可能性がある Java の関数を呼ぶ時は、ただちに `Option` でラップする。
+
+http://stackoverflow.com/questions/5740906/how-to-check-for-null-in-a-single-statement-in-scala[How to check for null in a single statement in scala?]
+
+例外を throw しない
+-------------------
+
+エラーを処理するのに例外を使う代わりに、エラーを値で表現します。
+
+前述の `Option` や、
+http://www.scala-lang.org/api/current/index.html#scala.util.Try[`Try`]
+http://www.scala-lang.org/api/current/index.html#scala.util.Either[`Either`],
+を使います。
+
+Unit 型 (void 型) の使用を限定する
+----------------------------------
+
+statement ではなく expression を使う
+
+Thread を使わない
+-----------------
+
+Thread モデルの代わりに Actor モデルを使って cuncurrency に対処します。
+
+thread モデルでは、メモリー上にあるデータに対して、複数の thread から読み書きをします。
+そのため、 mutable なデータが前提になります。
