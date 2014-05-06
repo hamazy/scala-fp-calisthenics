@@ -23,13 +23,13 @@ object FpCounter {
   type CounterState = State[Counter, Int]
   val inc: CounterState = State { c =>
     val v = c.get + 1
-    (v, Counter(v))
+    (Counter(v), v)
   }
 
   def example() = {
     val c0 = Counter(0)
-    val (_, c1) = inc.run(c0)
-    val (v, _) = inc.run(c1)
+    val (c1, _) = inc.run(c0)
+    val (_, v) = inc.run(c1)
     println(v)
   }
 
@@ -38,7 +38,7 @@ object FpCounter {
       _ ← inc
       v ← inc
     } yield (v)
-    val (v, _) = action.run(Counter(0))
+    val (_, v) = action.run(Counter(0))
     println(v)
   }
 

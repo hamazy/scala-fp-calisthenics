@@ -1,29 +1,29 @@
 package com.suguruhamazaki
 
 object Coin3 {
-  case class CoinAction[A](action: Coin => (A, Coin))
-    extends (Coin => (A, Coin)) {
+  case class CoinAction[A](action: Coin => (Coin, A))
+    extends (Coin => (Coin, A)) {
     def apply(c: Coin) = action(c)
     def +(next: CoinAction[A]): CoinAction[A] = CoinAction { c0 =>
-      val (_, c1) = apply(c0)
+      val (c1, _) = apply(c0)
       next(c1)
     }
     def map[B](f: A => B): CoinAction[B] = CoinAction { c0 =>
-      val (a, c1) = apply(c0)
-      (f(a), c1)
+      val (c1, a) = apply(c0)
+      (c1, f(a))
     }
     def flatMap[B](f: A => CoinAction[B]): CoinAction[B] =
       CoinAction { c0 =>
-        val (a, c1) = apply(c0)
+        val (c1, a) = apply(c0)
         f(a)(c1)
       }
   }
 
   val flip = CoinAction { c =>
     val head = !c.head
-    (head, Coin(head))
+    (Coin(head), head)
   }
-  val stay = CoinAction(c => (c.head, c))
+  val stay = CoinAction(c => (c, c.head))
 
   def example() = {
     val (message, _) = (flip + stay + flip).map(head => "Showing head: " + head)(Coin(true))
@@ -39,7 +39,7 @@ object Coin3 {
           }
         }
       }
-    val ((s1, b3), _) = action(Coin(true))
+    val (_, (s1, b3)) = action(Coin(true))
     println(s1)
     println(b3)
   }
@@ -50,7 +50,7 @@ object Coin3 {
       _ <- stay
       b3 <- flip
     } yield (s1, b3)
-    val ((s1, b3), _) = action(Coin(true))
+    val (_, (s1, b3)) = action(Coin(true))
     println(s1)
     println(b3)
   }
