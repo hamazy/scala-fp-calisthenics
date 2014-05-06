@@ -21,7 +21,7 @@ case class Counter(get: Int)
 object FpCounter {
 
   type CounterState = State[Counter, Int]
-  val inc: CounterState = State { c ⇒
+  val inc: CounterState = State { c =>
     val v = c.get + 1
     (v, Counter(v))
   }
