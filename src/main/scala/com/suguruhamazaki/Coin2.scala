@@ -15,6 +15,6 @@ object Coin2 {
   def example() = {
     val action = flip + stay + flip
     val c = action(Coin(true))
-    println("Showing head: " + c.head)
+    println("Showing a head? " + c.head)
   }
 }

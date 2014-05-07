@@ -12,6 +12,6 @@ object OoCoin {
     c.flip()
     c.stay()
     c.flip()
-    println("Showing head: " + c.get)
+    println("Showing a head? " + c.get)
   }
 }

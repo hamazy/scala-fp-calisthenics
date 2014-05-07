@@ -12,12 +12,12 @@ object Coin5 {
 
   def example() = {
     val action = for {
-      s1 <- flip.map(h => "first: " + h)
+      s1 <- flip.map(b => "1st occurrence is a head? " + b)
       _ <- stay
-      b3 <- flip
-    } yield (s1, b3)
-    val (_, (s1, b3)) = action(Coin(true))
+      s3 <- flip.map(b => "3rd occurrence is a head? " + b)
+    } yield (s1, s3)
+    val (_, (s1, s3)) = action(Coin(true))
     println(s1)
-    println(b3)
+    println(s3)
   }
 }

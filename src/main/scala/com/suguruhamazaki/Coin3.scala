@@ -4,10 +4,8 @@ object Coin3 {
   case class CoinAction[A](action: Coin => (Coin, A))
     extends (Coin => (Coin, A)) {
     def apply(c: Coin) = action(c)
-    def +(next: CoinAction[A]): CoinAction[A] = CoinAction { c0 =>
-      val (c1, _) = apply(c0)
-      next(c1)
-    }
+    def +[B](next: CoinAction[B]): CoinAction[B] =
+      flatMap(_ => next)
     def map[B](f: A => B): CoinAction[B] = CoinAction { c0 =>
       val (c1, a) = apply(c0)
       (c1, f(a))
@@ -26,32 +24,54 @@ object Coin3 {
   val stay = CoinAction(c => (c, c.head))
 
   def example() = {
-    val (message, _) = (flip + stay + flip).map(head => "Showing head: " + head)(Coin(true))
+    val (_, message) = (flip + stay + flip).map(head => "Showing a head? " + head)(Coin(true))
     println(message)
   }
 
   def example2() = {
     val action =
-      flip.map(h => "first: " + h).flatMap { s1 =>
+      flip.flatMap { _ =>
         stay.flatMap { _ =>
-          flip.map { b3 =>
-            (s1, b3)
-          }
+          flip
         }
       }
-    val (_, (s1, b3)) = action(Coin(true))
-    println(s1)
-    println(b3)
+    val (c, _) = action(Coin(true))
+    println("Showing a head? " + c.head)
   }
 
   def example3() = {
+    val action =
+      flip.flatMap { b1 =>
+        stay.flatMap { _ =>
+          flip.map { b3 =>
+            (b1, b3)
+          }
+        }
+      }
+    val (_, (b1, b3)) = action(Coin(true))
+    println("1st occurrence is a head? " + b1)
+    println("3rd occurrence is a head? " + b3)
+  }
+
+  def example4() = {
     val action = for {
-      s1 <- flip.map(h => "first: " + h)
+      b1 <- flip
       _ <- stay
       b3 <- flip
-    } yield (s1, b3)
-    val (_, (s1, b3)) = action(Coin(true))
-    println(s1)
-    println(b3)
+    } yield (b1, b3)
+    val (_, (b1, b3)) = action(Coin(true))
+    println("1st occurrence is a head? " + b1)
+    println("3rd occurrence is a head? " + b3)
   }
+
+  def example5() = {
+    val action = for {
+      s1 <- flip.map(b1 => "1st occurrence is a head? " + b1)
+      _ <- stay
+      s3 <- flip.map(b3 => "3rd occurrence is a head? " + b3)
+    } yield (s1 + "\n" + s3)
+    val (_, s) = action(Coin(true))
+    println(s)
+  }
+
 }

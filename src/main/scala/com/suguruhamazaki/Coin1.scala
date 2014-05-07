@@ -11,6 +11,6 @@ object Coin1 {
     val c1 = flip(c0)
     val c2 = stay(c1)
     val c3 = flip(c2)
-    println("Showing head: " + c3.head)
+    println("Showing a head? " + c3.head)
   }
 }

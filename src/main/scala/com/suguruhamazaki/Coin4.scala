@@ -13,7 +13,7 @@ object Coin4 {
     val (c1, _) = flip.run(c0)
     val (c2, _) = stay.run(c1)
     val (_, head) = flip.run(c2)
-    println("Showing head: " + head)
+    println("Showing a head? " + head)
   }
 
   def example2() {
