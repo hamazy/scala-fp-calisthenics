@@ -1,12 +1,13 @@
 Scala関数型プログラミング入門
 =============================
+:docinfo:
 
 プログラミング言語 Scala
 ------------------------
 
 http://scala-lang.org[Scala] は、オブジェクト指向と関数型をミックスした、
 マルチパラダイム言語です。
-Scala には様々な特徴がありますが、今回は、関数型である点に焦点をあてます。
+Scala には様々な特徴がありますが、今回は、関数型言語としての特徴に焦点をあてます。
 
 関数型プログラミング
 --------------------
@@ -15,7 +16,13 @@ Scala には様々な特徴がありますが、今回は、関数型である�
 関数型プログラミングの学術的な定義については、専門分野の方々におまかせするとして、
 ここでは、「純粋関数のみを使うスタイルのプログラミング」という説明にとどめておきます。
 
-純粋関数とは、副作用を持たない関数のことです。以下は全て、副作用の例です。
+純粋関数 (http://en.wikipedia.org/wiki/Pure_function[Pure function])
+とは、以下の条件が成り立つ関数のことです。
+
+* 関数の評価結果が引数の値のみによって決まり、同じ値を与えると常に同じ値の結果を返す
+* 関数の評価によって、観測可能な副作用が発生しない
+
+副作用とは、例えば以下のようなことです。
 
 * 変数に再代入する
 * データの構造を破壊的に変更する
@@ -32,10 +39,6 @@ Scala はオブジェクト指向プログラミングのための機能も備�
 しかし、副作用をできるだけ発生させずにプログラムを書くことにはメリットがあります。そのメリットの例について、
 次で説明します。
 
-http://www.cse.chalmers.se/~rjmh/Papers/whyfp.html[Why Functional Programming Matters]
-http://www.eliza.ch/doc/wadler92essence_of_FP.pdf[The Essence of Functional Programming]
-http://www.thocp.net/biographies/papers/backus_turingaward_lecture.pdf[Can We Be Liberated From the von Neumann Machine?]
-
 参照透過性
 ~~~~~~~~~~
 
@@ -49,6 +52,21 @@ http://www.thocp.net/biographies/papers/backus_turingaward_lecture.pdf[Can We Be
 
 置換モデルの使用例
 ~~~~~~~~~~~~~~~~~~
+
+http://mitpress.mit.edu/sicp[Structure and Interpretation of Computer Programs]
+で http://mitpress.mit.edu/sicp/full-text/book/book-Z-H-10.html[取り上げられている例]
+を使って、置換モデルをどのように使用するのかを見てみます。
+
+例えば、以下のように `sumOfSquares()` メソッドと `square()`
+メソッドが定義されているとします。
+
+--------------------
+def sumOfSquares(i1: Int, i2: Int) = square(i1) + square(i2)
+def square(i: Int) = i * i
+--------------------
+
+この時、以下のように `sumOfSquares(a + 1, a * 2)` を評価すると、その結果は
+`136` になります。
 
 --------------------
 scala> val a = 5
@@ -70,16 +88,8 @@ square(6) + square(10)
 136
 --------------------
 
-プログラムの解析に置換モデルが使えること以外にも、参照透過性には以下のようなメリットがあります。
-
-* testable
-** 実行時のコンテキストに依存しないので、簡単に再現できる
-* composable
-** 実行時のコンテキストに依存しないので、簡単に他のモジュールと組み合わせられる
-* mudular
-** 実行時のコンテキストに依存しないので、依存性が少ない
-* easilly parrallelized
-** ...
+このように、プログラムの参照透過性が保たれていれば、置換モデルを使って
+プログラムを解析することができます。
 
 コインのモデル
 --------------
@@ -100,15 +110,19 @@ square(6) + square(10)
 以下は、オブジェクト指向的なアプローチで、コインを実装した例です。
 
 --------------------
-sys::[cat src/main/scala/com/suguruhamazaki/OoCoin.scala]
+sys::[tail -n 15 src/main/scala/com/suguruhamazaki/OoCoin.scala]
 --------------------
 
-`OoCoin` クラスの中で、 フィールド `head` を `var` として宣言しています。
+`OoCoin` クラスの中で、 `head` フィールドを `var` として宣言しています。
 Scala では、 `var` で宣言された変数は再代入できます。実際に、`flip()`
 メソッドの中で、 `head` に再代入を行なっています。
 
+`flip()` と `stay()` は引数を持たず、これらの結果は `head`
+フィールドの値に依存します。すなわち、参照透過ではありません。
+
 参照透過性を持たない `OoCoin` のこの実装の場合、 最後の `c.get`
-が返す値を正しく判断するために、 `c` に対する操作をくまなく把握する必要があります。
+が返す値を正しく判断するために、 `c` に対する操作をくまなく追跡して、 `head`
+フィールドの値を把握している必要があります。
 
 純粋関数のみを使う
 ~~~~~~~~~~~~~~~~~~
@@ -197,12 +211,12 @@ http://en.wikipedia.org/wiki/First-class_function[first class object]
 * 変数に代入する
 
 Scala 言語の内部では、 `Coin => Coin` 型は `Function1[Coin, Coin]`
-型で扱われます。 `=>` を使った表記の方が直感的に読み易いので、
+型と同じものとして扱われます。 `=>` を使った表記の方が直感的に読み易いので、
 Scala のコードではしばしばこの表記が使われます。
 
 また、関数は当然、それを呼び出すことも可能です。例えば、 `CoinAction`
-のコンストラクターが受け取った `action` は、他の部分で `action(c)`
-のように呼び出されています。
+のコンストラクターが受け取った `action` を、 `apply()` メソッドの中では
+`action(c)` のように呼び出しています。
 
 `Coin => Coin` 型の継承と apply() メソッド
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -212,16 +226,16 @@ Scala のコードではしばしばこの表記が使われます。
 クラスのインスタンスは、関数として扱うことができます。つまり、括弧で呼び出して、
 あらかじめ定義された振る舞いを実行することができます。
 
-呼び出し時に実行される振る舞いは、 `apply()` メソッドで定義します。`CoinAction`
-クラスの `apply()` メソッドでは、ラップしている `action` を
-そのまま呼び出しています。
+呼び出し時に実行される振る舞いは、 `apply()` メソッドを実装して定義します。
+`CoinAction` クラスの `apply()` メソッドでは、ラップしている `action`
+をそのまま呼び出しています。
 
 +() メソッド
 ^^^^^^^^^^^^
 
 `+()` メソッドでは、引数で受け取った `CoinAction` と自身がラップする `action`
 を元に、新たな `CoinAction` を作っています。 `CoinAction` のコンストラクターの引数には
-`Coin => Coin` 型の関数を渡さなくてはなりませんので、関数リテラルで作って渡しています。
+`Coin => Coin` 型の関数を渡さなくてはなりませんので、関数リテラルを作って渡しています。
 以下が、 `Coin => Coin` 型の関数リテラルの部分です。
 
 --------------------
@@ -283,7 +297,7 @@ sys::[tail -n 74 src/main/scala/com/suguruhamazaki/Coin3.scala | head -15]
 
 まず、ラップする `action` 関数の型が `Coin => Coin` から `Coin => (Coin, A)`
 に変わりました。つまり、 `action` 関数を呼び出した時の戻り値が、 `Coin` 型から
-`(Coin, A)` 型になったことになります。 `(Coin, A)` は Scala におけるタプルの表現で、
+`(Coin, A)` 型になりました。 `(Coin, A)` は Scala におけるタプルの表現で、
 `Coin` 型と `A` 型のペアを表わします。
 
 戻り値を単なる `Coin` から `(Coin, A)` に変更した理由は、
@@ -298,7 +312,7 @@ sys::[tail -n 74 src/main/scala/com/suguruhamazaki/Coin3.scala | head -15]
 そして、 `action` 関数が `Coin => (Coin, A)` 型になったのに合わせて、
 `CoinAction` クラスが継承する型も `Coin => (Coin, A)` になっています。
 
-更に、これに合わせて書き直した `flip` と `stay` は、以下のようになります。
+これに合わせて書き直した `flip` と `stay` は、以下のようになります。
 
 --------------------
 sys::[tail -n 58 src/main/scala/com/suguruhamazaki/Coin3.scala | head -5]
@@ -307,9 +321,10 @@ sys::[tail -n 58 src/main/scala/com/suguruhamazaki/Coin3.scala | head -5]
 map() メソッド
 ^^^^^^^^^^^^^^
 
-`map()` メソッドは、`A` 型の結果を任意の型に変換するためのメソッドです。`map()`
-メソッドを呼び出す前の `CoinAction` は、状態遷移時に `A` 型の結果を (`Coin` 型と共に)
-返しますが、`map()` メソッドを呼び出して返る `CoinAction` は、 `B` 型の結果を返します。
+`map()` メソッドは、`A` 型の結果を任意の型に変換するためのメソッドです。状態遷移時に `A`
+型の結果を (`Coin` 型と共に) 返す `CoinAction` に対し `map()` メソッドを呼び出すと、
+それによって得られる `CoinAction` は、状態遷移時に `B` 型の結果を返す `CoinAction`
+になります。
 
 具体的にどのように `A` 型から `B` 型へ変換するかは、引数 `f` で渡します。
 `f` の型は `A => B` ですので、 `A` 型の引数を1つとり、 `B` 型を返す関数です。
@@ -321,24 +336,27 @@ flatMap() メソッド
 `+()` メソッドと同様に、連続する2つの `CoinAction` を組み合わせて、1 つの
 `CoinAction` を作ります。 ただし、 `+()` メソッドと異なるのは、次の操作を単なる
 `CoinAction` として受け取るのではなく、関数 `A => CoinAction[B]`
-として受け取る点です。これにより、今の操作の結果を元に CoinAction[B]
+として受け取る点です。これにより、今の操作の結果を参照しつつ CoinAction[B]
 を作り出す余地が生まれます。
 
-それから、`+()` メソッドは `flatMap()` メソッドを使うように書き換えられています。
+ちなみに、`+()` メソッドの実装が、 `flatMap()` メソッドを使うように書き換えられています。
 
 CoinAction の使い方
 ^^^^^^^^^^^^^^^^^^^
 
 新しい `CoinAction` の `flatMap()` メソッドを使うと、先ほどの `flip + stay + flip`
-を次のように書けます。
+を次のように書くことが出来ます。
 
 --------------------
 sys::[tail -n 46 src/main/scala/com/suguruhamazaki/Coin3.scala | head -6]
 --------------------
 
-一見すると随分異なるコードに見えるかもしれませんが、実はそうではありません。メソッド名が
-`+` から `flatMap` になったこと、 `CoinAction` 型が `Boolean => CoinAction`
-型になったこと、`.`, `{}`, 改行の有無などシンタックス上の違いの他は、同一のコードです。
+一見すると、先ほどとはかけ離れたコードに見えるかもしれませんが、実はそうではありません。
+以下の違いの他は、同一のコードです。
+
+* メソッド名が `+` から `flatMap` になった
+* 操作 (`CoinAction` 型) を渡していた部分が、操作を生成する関数 (`Boolean => CoinAction` 型) を渡すようになった
+* `.`, `{}`, 改行の有無など、シンタックス上の違い
 
 そして、 `+()` の代わりに `flatMap()` を使う利点は、 `map()`
 と組み合わせて以下のようなコードが書けることです。
@@ -352,7 +370,7 @@ sys::[tail -n 35 src/main/scala/com/suguruhamazaki/Coin3.scala | head -11]
 というのは、今回の操作の結果です。ですので、関数 `f` の中で次の結果を生成する際、
 引数として受け取った `A` を利用することができます。
 
-上のコードで具体的に説明すると、3つ目の操作である `flip` は、 `map()` 関数を使って
+この点を上のコードで具体的に説明すると、3つ目の操作である `flip` は、 `map()` 関数を使って
 `Boolean` 型の結果 `b3` を `(Boolean, Boolean)` 型の結果 `(b1, b3)`
 に変換しています。変数 `b1` がここで利用できる理由は、1つ目の操作である `flip`
 の `flapMap()` メソッドの中にあるからです。つまり、1つ目の操作の結果を `b1`
@@ -378,6 +396,10 @@ sys::[tail -n 21 src/main/scala/com/suguruhamazaki/Coin3.scala | head -8]
 --------------------
 sys::[tail -n 10 src/main/scala/com/suguruhamazaki/Coin3.scala | head -7]
 --------------------
+
+上のコード中で副作用を持つのは、最後の `println()` の部分のみです。
+それ以外は全て純粋関数のみで書かれており、参照透過です。
+このように、純粋関数のみを使ってステートマシンを実装することが出来ました。
 
 CoinAction を抽象化する
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -416,4 +438,6 @@ sys::[tail -n 20 src/main/scala/com/suguruhamazaki/Coin5.scala | head -2]
 まとめ
 ------
 
-TODO
+* 純粋関数のみを使って、簡単なステートマシンを実装する方法を紹介しました。
+* その方法を汎用的に利用できる、より抽象的な実装を紹介しました。
+* 既存のライブラリーで提供されている、同様の API を紹介しました。
