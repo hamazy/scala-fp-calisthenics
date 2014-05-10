@@ -32,4 +32,6 @@ object MutualRecursion {
 object SubstitutionModel {
   def sumOfSquares(i1: Int, i2: Int) = square(i1) + square(i2)
   def square(i: Int) = i * i
+  val a = 5
+  sumOfSquares(a + 1, a * 2)
 }
